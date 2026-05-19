@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrivacyPuppet — Interactive Avatar Experience</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3250;
+      --accent: #6c63ff;
+      --accent2: #a78bfa;
+      --text: #e8eaf6;
+      --muted: #7b80a0;
+      --green: #4ade80;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 40px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    .logo span { color: var(--accent2); }
+
+    nav a {
+      color: var(--muted);
+      text-decoration: none;
+      margin-left: 28px;
+      font-size: 0.9rem;
+      transition: color .2s;
+    }
+    nav a:hover { color: var(--text); }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 48px 20px 28px;
+    }
+    .hero h1 {
+      font-size: 2.6rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, #fff 30%, var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      color: var(--muted);
+      margin-top: 10px;
+      font-size: 1.05rem;
+    }
+
+    /* ── STATUS BAR ── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 8px 0 24px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      display: inline-block;
+      margin-right: 5px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ── MAIN LAYOUT ── */
+    .main {
+      display: flex;
+      gap: 28px;
+      padding: 0 40px 40px;
+      flex: 1;
+      align-items: flex-start;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* ── AVATAR STAGE ── */
+    .stage-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .stage {
+      width: 360px;
+      height: 360px;
+      background: radial-gradient(ellipse at 50% 30%, #1e2240 0%, var(--surface) 70%);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stage::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 100%, rgba(108,99,255,.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .stage .shadow {
+      position: absolute;
+      bottom: 28px;
+      width: 110px; height: 22px;
+      background: rgba(0,0,0,.4);
+      border-radius: 50%;
+      filter: blur(8px);
+    }
+
+    /* ── AVATAR SVG CHARACTERS ── */
+    .avatar-container {
+      position: relative;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .char-name-badge {
+      text-align: center;
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--text);
+    }
+    .char-trait-badge {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--accent2);
+    }
+
+    /* ── CONTROLS ── */
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .ctrl-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ctrl-btn:hover, .ctrl-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .ctrl-btn .kbd {
+      background: rgba(255,255,255,.15);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 0.75rem;
+    }
+
+    /* ── CHARACTER GRID ── */
+    .char-panel {
+      width: 420px;
+    }
+
+    .panel-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .char-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .char-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 8px 10px;
+      cursor: pointer;
+      text-align: center;
+      transition: all .18s;
+      position: relative;
+    }
+    .char-card:hover {
+      border-color: var(--accent2);
+      background: var(--surface2);
+      transform: translateY(-2px);
+    }
+    .char-card.selected {
+      border-color: var(--accent);
+      background: rgba(108,99,255,.12);
+    }
+    .char-card.selected::after {
+      content: '✓';
+      position: absolute;
+      top: 5px; right: 7px;
+      font-size: 0.65rem;
+      color: var(--accent2);
+    }
+    .char-card .thumb {
+      width: 52px; height: 52px;
+      margin: 0 auto 7px;
+      display: block;
+    }
+    .char-card .cname {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .char-card .ctag {
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ── NEW badge ── */
+    .new-badge {
+      position: absolute;
+      top: 5px; left: 7px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.55rem;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 4px;
+      letter-spacing: .5px;
+    }
+
+    /* ── INFO PANEL ── */
+    .info-panel {
+      margin-top: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .info-panel h3 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--accent2);
+    }
+    .info-panel p {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      color: var(--muted);
+      background: var(--surface);
+    }
+    footer a {
+      color: var(--muted);
+      text-decoration: none;
+      margin-left: 20px;
+      transition: color .2s;
+    }
+    footer a:hover { color: var(--text); }
+
+    /* ── IMMERSIVE MODE ── */
+    body.immersive header,
+    body.immersive .char-panel,
+    body.immersive footer,
+    body.immersive .hero,
+    body.immersive .status-bar {
+      display: none !important;
+    }
+    body.immersive .main {
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      padding: 0;
+    }
+    body.immersive .stage {
+      width: 520px;
+      height: 520px;
+      border-radius: 0;
+      border: none;
+    }
+
+    /* ── MOUTH ANIMATION ── */
+    .mouth-open .mouth {
+      animation: talk .15s steps(2) infinite;
+    }
+    @keyframes talk {
+      0%   { d: path("M 30 60 Q 50 80 70 60"); }
+      100% { d: path("M 30 60 Q 50 70 70 60"); }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 860px) {
+      .main { padding: 0 16px 32px; }
+      .char-panel { width: 100%; }
+      header { padding: 14px 20px; }
+      .char-grid { grid-template-columns: repeat(5, 1fr); }
+    }
+    @media (max-width: 520px) {
+      .stage { width: 300px; height: 300px; }
+      .char-grid { grid-template-columns: repeat(4, 1fr); }
+      .hero h1 { font-size: 1.9rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🎭</div>
+    Privacy<span>Puppet</span>
+  </div>
+  <nav>
+    <a href="#">Blog</a>
+    <a href="#">Disclaimer</a>
+    <a href="#">About</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>Interactive Avatar Experience</h1>
+  <p>Choose your puppet &amp; bring it to life — no data collected, ever.</p>
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <span><span class="status-dot"></span>Engine ready</span>
+  <span><span class="status-dot"></span>Avatar loaded</span>
+  <span id="char-status"><span class="status-dot"></span>Steve selected</span>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- STAGE -->
+  <div class="stage-wrap">
+    <div class="stage" id="stage">
+      <div class="avatar-container" id="avatar-display"></div>
+      <div class="shadow"></div>
+    </div>
+
+    <div class="char-name-badge" id="display-name">Steve</div>
+    <div class="char-trait-badge" id="display-trait">The Classic</div>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+      <button class="ctrl-btn" id="btn-mouth" onclick="toggleMouth()">
+        🗣 Toggle Mouth <span class="kbd">M</span>
+      </button>
+      <button class="ctrl-btn" id="btn-immersive" onclick="toggleImmersive()">
+        🔲 Immersive <span class="kbd">I</span>
+      </button>
+      <button class="ctrl-btn" id="btn-wave" onclick="waveAvatar()">
+        👋 Wave
+      </button>
+      <button class="ctrl-btn" id="btn-spin" onclick="spinAvatar()">
+        🔄 Spin
+      </button>
+    </div>
+  </div>
+
+  <!-- CHARACTER PANEL -->
+  <div class="char-panel">
+    <div class="panel-title">Choose Your Puppet — 14 Characters</div>
+    <div class="char-grid" id="char-grid"></div>
+
+    <div class="info-panel" id="info-panel">
+      <h3 id="info-name">Steve</h3>
+      <p id="info-desc">The original PrivacyPuppet. Cool, calm, and always protecting your data with a confident smile.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span>© 2024 PrivacyPuppet. No cookies. No tracking. Ever.</span>
+  <div>
+    <a href="#">Blog</a>
+    <a href="#">Disclaimer</a>
+    <a href="#">Privacy Policy</a>
+  </div>
+</footer>
+
+<script>
+// ── CHARACTER DATA ──────────────────────────────────────────────
+const characters = [
+  {
+    id: 'steve',
+    name: 'Steve',
+    trait: 'The Classic',
+    desc: 'The original PrivacyPuppet. Cool, calm, and always protecting your data with a confident smile.',
+    skin: '#FDBCB4', hair: '#3D2B1F', shirt: '#4a90d9', eye: '#4a6fa5',
+    hairStyle: 'short', isNew: false
+  },
+  {
+    id: 'emma',
+    name: 'Emma',
+    trait: 'The Advocate',
+    desc: 'Passionate about digital rights and privacy law. Emma fights for your freedom online every day.',
+    skin: '#FFD5C2', hair: '#C4622D', shirt: '#e879a0', eye: '#7b4f3a',
+    hairStyle: 'long', isNew: false
+  },
+  {
+    id: 'marcus',
+    name: 'Marcus',
+    trait: 'The Hacker',
+    desc: 'Ex-security researcher turned privacy champion. Marcus knows every trick in the book.',
+    skin: '#8D5524', hair: '#1a1a1a', shirt: '#2d8a4e', eye: '#2d4a1e',
+    hairStyle: 'fro', isNew: false
+  },
+  {
+    id: 'kofi',
+    name: 'Kofi',
+    trait: 'The Educator',
+    desc: 'Explains complex privacy concepts in simple terms. Kofi believes knowledge is the best defense.',
+    skin: '#6B3A2A', hair: '#0d0d0d', shirt: '#d97706', eye: '#1a0a00',
+    hairStyle: 'short', isNew: false
+  },
+  {
+    id: 'yuki',
+    name: 'Yuki',
+    trait: 'The Engineer',
+    desc: 'Built privacy-first systems for Fortune 500 companies. Yuki codes the future of data security.',
+    skin: '#F5D5B8', hair: '#0d0d0d', shirt: '#7c3aed', eye: '#1a0a00',
+    hairStyle: 'straight', isNew: false
+  },
+  {
+    id: 'liam',
+    name: 'Liam',
+    trait: 'The Journalist',
+    desc: 'Award-winning investigative reporter who exposed three major data breaches. Liam speaks truth.',
+    skin: '#FDEBD0', hair: '#8B4513', shirt: '#1d6b8a', eye: '#5c4033',
+    hairStyle: 'wavy', isNew: false
+  },
+  {
+    id: 'sofia',
+    name: 'Sofia',
+    trait: 'The Diplomat',
+    desc: 'Negotiates privacy treaties between tech giants and governments. Sofia bridges the gap.',
+    skin: '#D4A574', hair: '#2C1810', shirt: '#c0392b', eye: '#1a0a00',
+    hairStyle: 'bun', isNew: true
+  },
+  {
+    id: 'amara',
+    name: 'Amara',
+    trait: 'The Activist',
+    desc: 'Grassroots organizer who built a 2-million-strong privacy movement from the ground up.',
+    skin: '#4A2511', hair: '#0a0a0a', shirt: '#16a085', eye: '#0d0500',
+    hairStyle: 'locs', isNew: true
+  },
+  {
+    id: 'chen',
+    name: 'Chen',
+    trait: 'The Analyst',
+    desc: 'Decodes privacy policies so you don\'t have to. Chen has read 10,000 terms of service.',
+    skin: '#E8C49A', hair: '#1a0a00', shirt: '#8e44ad', eye: '#0d0500',
+    hairStyle: 'short', isNew: true
+  },
+  {
+    id: 'diego',
+    name: 'Diego',
+    trait: 'The Designer',
+    desc: 'Pioneered privacy-by-design UX patterns used by millions of apps worldwide.',
+    skin: '#C68642', hair: '#1a0500', shirt: '#e67e22', eye: '#0d0200',
+    hairStyle: 'curly', isNew: true
+  },
+  {
+    id: 'priya',
+    name: 'Priya',
+    trait: 'The Scientist',
+    desc: 'AI safety researcher who develops privacy-preserving machine learning algorithms.',
+    skin: '#B5712B', hair: '#0a0a0a', shirt: '#27ae60', eye: '#060300',
+    hairStyle: 'long', isNew: true
+  },
+  {
+    id: 'zara',
+    name: 'Zara',
+    trait: 'The Strategist',
+    desc: 'Former Big Tech insider turned whistleblower. Zara knows where all the data bodies are buried.',
+    skin: '#7D4527', hair: '#1f0a00', shirt: '#d35400', eye: '#0d0200',
+    hairStyle: 'locs', isNew: true
+  },
+  {
+    id: 'jake',
+    name: 'Jake',
+    trait: 'The Developer',
+    desc: 'Open-source champion who built the most popular privacy browser extension with 5M users.',
+    skin: '#FDDBC2', hair: '#6B3A2A', shirt: '#2980b9', eye: '#3d2010',
+    hairStyle: 'short', isNew: true
+  },
+  {
+    id: 'nina',
+    name: 'Nina',
+    trait: 'The Lawyer',
+    desc: 'Landmark GDPR cases, class actions against data brokers — Nina makes privacy law history.',
+    skin: '#F0C8A0', hair: '#C4622D', shirt: '#8e44ad', eye: '#7b4f3a',
+    hairStyle: 'straight', isNew: true
+  },
+];
+
+let selected = characters[0];
+let mouthOpen = false;
+let immersiveMode = false;
+
+// ── SVG AVATAR BUILDER ──────────────────────────────────────────
+function buildSVG(char, size = 200) {
+  const s = size / 200;
+  const { skin, hair, shirt, eye, hairStyle } = char;
+
+  const hairPaths = {
+    short: `<rect x="52" y="38" width="96" height="40" rx="20" fill="${hair}"/>
+            <rect x="52" y="48" width="10" height="30" rx="5" fill="${hair}"/>
+            <rect x="138" y="48" width="10" height="30" rx="5" fill="${hair}"/>`,
+    long:  `<rect x="52" y="38" width="96" height="40" rx="20" fill="${hair}"/>
+            <rect x="52" y="60" width="12" height="70" rx="6" fill="${hair}"/>
+            <rect x="136" y="60" width="12" height="70" rx="6" fill="${hair}"/>`,
+    straight: `<rect x="54" y="38" width="92" height="38" rx="18" fill="${hair}"/>
+               <rect x="54" y="60" width="10" height="55" rx="5" fill="${hair}"/>
+               <rect x="136" y="60" width="10" height="55" rx="5" fill="${hair}"/>`,
+    wavy:  `<path d="M52 58 Q60 40 100 40 Q140 40 148 58 Q140 42 130 48 Q120 54 110 48 Q100 42 90 48 Q80 54 70 48 Q60 42 52 58Z" fill="${hair}"/>`,
+    fro:   `<ellipse cx="100" cy="54" rx="58" ry="42" fill="${hair}"/>`,
+    curly: `<ellipse cx="100" cy="52" rx="55" ry="36" fill="${hair}"/>
+            <circle cx="62" cy="62" r="14" fill="${hair}"/>
+            <circle cx="138" cy="62" r="14" fill="${hair}"/>`,
+    bun:   `<rect x="56" y="45" width="88" height="32" rx="16" fill="${hair}"/>
+            <ellipse cx="100" cy="40" rx="22" ry="18" fill="${hair}"/>`,
+    locs:  `<rect x="54" y="38" width="92" height="36" rx="18" fill="${hair}"/>
+            <rect x="54" y="62" width="8" height="65" rx="4" fill="${hair}"/>
+            <rect x="68" y="65" width="8" height="62" rx="4" fill="${hair}"/>
+            <rect x="124" y="65" width="8" height="62" rx="4" fill="${hair}"/>
+            <rect x="138" y="62" width="8" height="65" rx="4" fill="${hair}"/>`,
+  };
+
+  const mouthPath = mouthOpen
+    ? `<ellipse cx="100" cy="118" rx="14" ry="10" fill="#1a0a00"/>
+       <path d="M86 118 Q100 126 114 118" stroke="#ffaaaa" stroke-width="2" fill="none"/>`
+    : `<path d="M88 116 Q100 124 112 116" stroke="#8B4513" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+
+  return `
+  <svg width="${size}" height="${size}" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- Body / Shirt -->
+    <path d="M40 200 L40 148 Q40 130 60 125 L80 118 L100 128 L120 118 L140 125 Q160 130 160 148 L160 200Z" fill="${shirt}"/>
+    <!-- Neck -->
+    <rect x="88" y="122" width="24" height="20" rx="6" fill="${skin}"/>
+    <!-- Head -->
+    <ellipse cx="100" cy="88" rx="50" ry="54" fill="${skin}"/>
+    <!-- Hair -->
+    ${hairPaths[hairStyle] || hairPaths.short}
+    <!-- Eyes -->
+    <ellipse cx="82" cy="85" rx="10" ry="11" fill="white"/>
+    <ellipse cx="118" cy="85" rx="10" ry="11" fill="white"/>
+    <circle cx="84" cy="86" r="6" fill="${eye}"/>
+    <circle cx="120" cy="86" r="6" fill="${eye}"/>
+    <circle cx="85" cy="84" r="2" fill="white"/>
+    <circle cx="121" cy="84" r="2" fill="white"/>
+    <!-- Eyebrows -->
+    <path d="M73 74 Q82 70 91 74" stroke="${hair}" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M109 74 Q118 70 127 74" stroke="${hair}" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- Nose -->
+    <ellipse cx="100" cy="100" rx="5" ry="7" fill="none" stroke="${skin === '#FDBCB4' ? '#e0998a' : '#7a4020'}" stroke-width="1.8"/>
+    <!-- Mouth -->
+    ${mouthPath}
+    <!-- Ear left -->
+    <ellipse cx="50" cy="90" rx="8" ry="12" fill="${skin}"/>
+    <!-- Ear right -->
+    <ellipse cx="150" cy="90" rx="8" ry="12" fill="${skin}"/>
+    <!-- Cheeks -->
+    <circle cx="72" cy="102" r="10" fill="rgba(255,120,120,0.18)"/>
+    <circle cx="128" cy="102" r="10" fill="rgba(255,120,120,0.18)"/>
+  </svg>`;
+}
+
+function buildThumbSVG(char) {
+  return buildSVG(char, 52);
+}
+
+// ── RENDER GRID ──────────────────────────────────────────────────
+function renderGrid() {
+  const grid = document.getElementById('char-grid');
+  grid.innerHTML = characters.map(c => `
+    <div class="char-card ${c.id === selected.id ? 'selected' : ''}" onclick="selectChar('${c.id}')">
+      ${c.isNew ? '<span class="new-badge">NEW</span>' : ''}
+      <div class="thumb">${buildThumbSVG(c)}</div>
+      <div class="cname">${c.name}</div>
+      <div class="ctag">${c.trait}</div>
+    </div>
+  `).join('');
+}
+
+// ── RENDER STAGE ────────────────────────────────────────────────
+function renderStage() {
+  document.getElementById('avatar-display').innerHTML = buildSVG(selected, 240);
+  document.getElementById('display-name').textContent = selected.name;
+  document.getElementById('display-trait').textContent = selected.trait;
+  document.getElementById('char-status').innerHTML =
+    `<span class="status-dot"></span>${selected.name} selected`;
+  document.getElementById('info-name').textContent = selected.name + ' — ' + selected.trait;
+  document.getElementById('info-desc').textContent = selected.desc;
+}
+
+function selectChar(id) {
+  selected = characters.find(c => c.id === id);
+  renderGrid();
+  renderStage();
+}
+
+// ── CONTROLS ───────────────────────────────────────────────────
+function toggleMouth() {
+  mouthOpen = !mouthOpen;
+  const btn = document.getElementById('btn-mouth');
+  btn.classList.toggle('active', mouthOpen);
+  if (mouthOpen) {
+    window._talkInterval = setInterval(() => {
+      mouthOpen = !mouthOpen;
+      renderStage();
+    }, 180);
+  } else {
+    clearInterval(window._talkInterval);
+    mouthOpen = false;
+    renderStage();
+  }
+}
+
+function toggleImmersive() {
+  immersiveMode = !immersiveMode;
+  document.body.classList.toggle('immersive', immersiveMode);
+  document.getElementById('btn-immersive').classList.toggle('active', immersiveMode);
+}
+
+function waveAvatar() {
+  const el = document.querySelector('.avatar-container');
+  el.style.animation = 'none';
+  el.style.transform = 'rotate(-15deg)';
+  let i = 0;
+  const t = setInterval(() => {
+    el.style.transform = i % 2 === 0 ? 'rotate(15deg)' : 'rotate(-15deg)';
+    i++;
+    if (i > 5) {
+      clearInterval(t);
+      el.style.transform = '';
+      el.style.animation = 'float 3s ease-in-out infinite';
+    }
+  }, 120);
+}
+
+function spinAvatar() {
+  const el = document.querySelector('.avatar-container');
+  el.style.animation = 'none';
+  el.style.transition = 'transform 0.6s ease';
+  el.style.transform = 'rotateY(360deg)';
+  setTimeout(() => {
+    el.style.transform = '';
+    el.style.transition = '';
+    el.style.animation = 'float 3s ease-in-out infinite';
+  }, 700);
+}
+
+// ── KEYBOARD SHORTCUTS ──────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'm' || e.key === 'M') toggleMouth();
+  if (e.key === 'i' || e.key === 'I') toggleImmersive();
+  if (e.key === 'Escape' && immersiveMode) toggleImmersive();
+  if (e.key === 'ArrowRight') {
+    const idx = characters.findIndex(c => c.id === selected.id);
+    selectChar(characters[(idx + 1) % characters.length].id);
+  }
+  if (e.key === 'ArrowLeft') {
+    const idx = characters.findIndex(c => c.id === selected.id);
+    selectChar(characters[(idx - 1 + characters.length) % characters.length].id);
+  }
+});
+
+// ── INIT ───────────────────────────────────────────────────────
+renderGrid();
+renderStage();
+</script>
+</body>
+</html>
