@@ -1,753 +1,592 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>PrivacyPuppet — Interactive Avatar Experience</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0d0f18;--surface:#14172a;--surface2:#1c2038;--border:#252b4a;
+      --accent:#6c63ff;--accent2:#a78bfa;--text:#e8eaf6;--muted:#616890;--green:#4ade80;
+    }
+    body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
 
-    :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3250;
-      --accent: #6c63ff;
-      --accent2: #a78bfa;
-      --text: #e8eaf6;
-      --muted: #7b80a0;
-      --green: #4ade80;
-    }
+    /* HEADER */
+    header{display:flex;align-items:center;justify-content:space-between;padding:16px 40px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0}
+    .logo{display:flex;align-items:center;gap:10px;font-size:1.35rem;font-weight:800;letter-spacing:-.5px}
+    .logo-ico{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+    .logo span{color:var(--accent2)}
+    nav a{color:var(--muted);text-decoration:none;margin-left:26px;font-size:.88rem;transition:color .2s}
+    nav a:hover{color:var(--text)}
 
-    body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+    /* HERO */
+    .hero{text-align:center;padding:40px 20px 20px}
+    .hero h1{font-size:2.5rem;font-weight:800;letter-spacing:-1px;background:linear-gradient(135deg,#fff 30%,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .hero p{color:var(--muted);margin-top:8px;font-size:1rem}
 
-    /* ── HEADER ── */
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 40px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-    }
+    /* STATUS */
+    .status-bar{display:flex;align-items:center;justify-content:center;gap:22px;padding:6px 0 22px;font-size:.8rem;color:var(--muted)}
+    .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);display:inline-block;margin-right:5px;animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 1.4rem;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
+    /* MAIN */
+    .main{display:flex;gap:28px;padding:0 40px 48px;flex:1;align-items:flex-start;justify-content:center;flex-wrap:wrap}
 
-    .logo-icon {
-      width: 36px; height: 36px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem;
+    /* STAGE */
+    .stage-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+    .stage{
+      width:380px;height:400px;
+      background:radial-gradient(ellipse at 50% 28%,#1d2248 0%,#0d0f18 75%);
+      border:1px solid var(--border);border-radius:24px;
+      display:flex;align-items:center;justify-content:center;
+      position:relative;overflow:hidden;cursor:none;
     }
+    .stage::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 95%,rgba(108,99,255,.1) 0%,transparent 65%);pointer-events:none}
+    .stage-shadow{position:absolute;bottom:22px;width:130px;height:20px;background:rgba(0,0,0,.5);border-radius:50%;filter:blur(10px)}
+    .avatar-wrap{animation:float 3.2s ease-in-out infinite;position:relative}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 
-    .logo span { color: var(--accent2); }
+    .char-name{text-align:center;font-weight:700;font-size:1.1rem}
+    .char-trait{text-align:center;font-size:.78rem;color:var(--accent2);margin-top:2px}
 
-    nav a {
-      color: var(--muted);
-      text-decoration: none;
-      margin-left: 28px;
-      font-size: 0.9rem;
-      transition: color .2s;
-    }
-    nav a:hover { color: var(--text); }
+    /* CONTROLS */
+    .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+    .btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:.8rem;transition:all .18s;display:flex;align-items:center;gap:5px}
+    .btn:hover,.btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+    .btn .kbd{background:rgba(255,255,255,.14);border-radius:3px;padding:1px 5px;font-size:.72rem}
 
-    /* ── HERO ── */
-    .hero {
-      text-align: center;
-      padding: 48px 20px 28px;
-    }
-    .hero h1 {
-      font-size: 2.6rem;
-      font-weight: 800;
-      letter-spacing: -1px;
-      background: linear-gradient(135deg, #fff 30%, var(--accent2));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .hero p {
-      color: var(--muted);
-      margin-top: 10px;
-      font-size: 1.05rem;
-    }
+    /* CHARACTER PANEL */
+    .char-panel{width:420px;padding-top:4px}
+    .panel-title{font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:1.1px;color:var(--muted);margin-bottom:13px}
+    .char-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+    .char-card{background:var(--surface);border:2px solid var(--border);border-radius:13px;padding:10px 6px 9px;cursor:pointer;text-align:center;transition:all .16s;position:relative;overflow:hidden}
+    .char-card:hover{border-color:var(--accent2);background:var(--surface2);transform:translateY(-2px)}
+    .char-card.sel{border-color:var(--accent);background:rgba(108,99,255,.13)}
+    .char-card.sel::after{content:'✓';position:absolute;top:5px;right:7px;font-size:.6rem;color:var(--accent2)}
+    .char-card .cname{font-size:.74rem;font-weight:600;color:var(--text);margin-top:5px}
+    .char-card .ctag{font-size:.64rem;color:var(--muted);margin-top:1px}
+    .new-tag{position:absolute;top:4px;left:5px;background:var(--accent);color:#fff;font-size:.5rem;font-weight:700;padding:1px 4px;border-radius:3px;letter-spacing:.4px}
 
-    /* ── STATUS BAR ── */
-    .status-bar {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      padding: 8px 0 24px;
-      font-size: 0.82rem;
-      color: var(--muted);
-    }
-    .status-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 6px var(--green);
-      display: inline-block;
-      margin-right: 5px;
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%,100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
+    /* INFO */
+    .info-box{margin-top:18px;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:15px}
+    .info-box h3{font-size:.82rem;font-weight:700;color:var(--accent2);margin-bottom:6px}
+    .info-box p{font-size:.8rem;color:var(--muted);line-height:1.65}
 
-    /* ── MAIN LAYOUT ── */
-    .main {
-      display: flex;
-      gap: 28px;
-      padding: 0 40px 40px;
-      flex: 1;
-      align-items: flex-start;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
+    /* FOOTER */
+    footer{border-top:1px solid var(--border);padding:18px 40px;display:flex;align-items:center;justify-content:space-between;font-size:.8rem;color:var(--muted);background:var(--surface);flex-shrink:0}
+    footer a{color:var(--muted);text-decoration:none;margin-left:18px;transition:color .2s}
+    footer a:hover{color:var(--text)}
 
-    /* ── AVATAR STAGE ── */
-    .stage-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-    }
+    /* IMMERSIVE */
+    body.imm header,body.imm .char-panel,body.imm footer,body.imm .hero,body.imm .status-bar{display:none!important}
+    body.imm .main{justify-content:center;align-items:center;height:100vh;padding:0}
+    body.imm .stage{width:520px;height:540px;border-radius:0;border:none}
 
-    .stage {
-      width: 360px;
-      height: 360px;
-      background: radial-gradient(ellipse at 50% 30%, #1e2240 0%, var(--surface) 70%);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .stage::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse at 50% 100%, rgba(108,99,255,.15) 0%, transparent 70%);
-      pointer-events: none;
-    }
-
-    .stage .shadow {
-      position: absolute;
-      bottom: 28px;
-      width: 110px; height: 22px;
-      background: rgba(0,0,0,.4);
-      border-radius: 50%;
-      filter: blur(8px);
-    }
-
-    /* ── AVATAR SVG CHARACTERS ── */
-    .avatar-container {
-      position: relative;
-      animation: float 3s ease-in-out infinite;
-    }
-    @keyframes float {
-      0%,100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-
-    .char-name-badge {
-      text-align: center;
-      font-weight: 700;
-      font-size: 1.15rem;
-      color: var(--text);
-    }
-    .char-trait-badge {
-      text-align: center;
-      font-size: 0.8rem;
-      color: var(--accent2);
-    }
-
-    /* ── CONTROLS ── */
-    .controls {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .ctrl-btn {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.82rem;
-      transition: all .2s;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .ctrl-btn:hover, .ctrl-btn.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
-    }
-    .ctrl-btn .kbd {
-      background: rgba(255,255,255,.15);
-      border-radius: 4px;
-      padding: 1px 5px;
-      font-size: 0.75rem;
-    }
-
-    /* ── CHARACTER GRID ── */
-    .char-panel {
-      width: 420px;
-    }
-
-    .panel-title {
-      font-size: 0.78rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--muted);
-      margin-bottom: 14px;
-    }
-
-    .char-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-    }
-
-    .char-card {
-      background: var(--surface);
-      border: 2px solid var(--border);
-      border-radius: 14px;
-      padding: 12px 8px 10px;
-      cursor: pointer;
-      text-align: center;
-      transition: all .18s;
-      position: relative;
-    }
-    .char-card:hover {
-      border-color: var(--accent2);
-      background: var(--surface2);
-      transform: translateY(-2px);
-    }
-    .char-card.selected {
-      border-color: var(--accent);
-      background: rgba(108,99,255,.12);
-    }
-    .char-card.selected::after {
-      content: '✓';
-      position: absolute;
-      top: 5px; right: 7px;
-      font-size: 0.65rem;
-      color: var(--accent2);
-    }
-    .char-card .thumb {
-      width: 52px; height: 52px;
-      margin: 0 auto 7px;
-      display: block;
-    }
-    .char-card .cname {
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .char-card .ctag {
-      font-size: 0.68rem;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    /* ── NEW badge ── */
-    .new-badge {
-      position: absolute;
-      top: 5px; left: 7px;
-      background: var(--accent);
-      color: #fff;
-      font-size: 0.55rem;
-      font-weight: 700;
-      padding: 1px 4px;
-      border-radius: 4px;
-      letter-spacing: .5px;
-    }
-
-    /* ── INFO PANEL ── */
-    .info-panel {
-      margin-top: 20px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 16px;
-    }
-    .info-panel h3 {
-      font-size: 0.85rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-      color: var(--accent2);
-    }
-    .info-panel p {
-      font-size: 0.82rem;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    /* ── FOOTER ── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 20px 40px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.82rem;
-      color: var(--muted);
-      background: var(--surface);
-    }
-    footer a {
-      color: var(--muted);
-      text-decoration: none;
-      margin-left: 20px;
-      transition: color .2s;
-    }
-    footer a:hover { color: var(--text); }
-
-    /* ── IMMERSIVE MODE ── */
-    body.immersive header,
-    body.immersive .char-panel,
-    body.immersive footer,
-    body.immersive .hero,
-    body.immersive .status-bar {
-      display: none !important;
-    }
-    body.immersive .main {
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      padding: 0;
-    }
-    body.immersive .stage {
-      width: 520px;
-      height: 520px;
-      border-radius: 0;
-      border: none;
-    }
-
-    /* ── MOUTH ANIMATION ── */
-    .mouth-open .mouth {
-      animation: talk .15s steps(2) infinite;
-    }
-    @keyframes talk {
-      0%   { d: path("M 30 60 Q 50 80 70 60"); }
-      100% { d: path("M 30 60 Q 50 70 70 60"); }
-    }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width: 860px) {
-      .main { padding: 0 16px 32px; }
-      .char-panel { width: 100%; }
-      header { padding: 14px 20px; }
-      .char-grid { grid-template-columns: repeat(5, 1fr); }
-    }
-    @media (max-width: 520px) {
-      .stage { width: 300px; height: 300px; }
-      .char-grid { grid-template-columns: repeat(4, 1fr); }
-      .hero h1 { font-size: 1.9rem; }
-    }
+    /* RESPONSIVE */
+    @media(max-width:880px){.main{padding:0 16px 32px}.char-panel{width:100%}.char-grid{grid-template-columns:repeat(5,1fr)}}
+    @media(max-width:520px){.stage{width:310px;height:330px}.char-grid{grid-template-columns:repeat(4,1fr)}.hero h1{font-size:1.9rem}}
   </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <header>
-  <div class="logo">
-    <div class="logo-icon">🎭</div>
-    Privacy<span>Puppet</span>
-  </div>
-  <nav>
-    <a href="#">Blog</a>
-    <a href="#">Disclaimer</a>
-    <a href="#">About</a>
-  </nav>
+  <div class="logo"><div class="logo-ico">🎭</div>Privacy<span>Puppet</span></div>
+  <nav><a href="#">Blog</a><a href="#">Disclaimer</a><a href="#">About</a></nav>
 </header>
 
-<!-- HERO -->
 <div class="hero">
   <h1>Interactive Avatar Experience</h1>
   <p>Choose your puppet &amp; bring it to life — no data collected, ever.</p>
 </div>
 
-<!-- STATUS BAR -->
 <div class="status-bar">
-  <span><span class="status-dot"></span>Engine ready</span>
-  <span><span class="status-dot"></span>Avatar loaded</span>
-  <span id="char-status"><span class="status-dot"></span>Steve selected</span>
+  <span><span class="dot"></span>Engine ready</span>
+  <span><span class="dot"></span>Avatar loaded</span>
+  <span id="status-char"><span class="dot"></span>Steve selected</span>
 </div>
 
-<!-- MAIN -->
 <div class="main">
-
-  <!-- STAGE -->
   <div class="stage-wrap">
     <div class="stage" id="stage">
-      <div class="avatar-container" id="avatar-display"></div>
-      <div class="shadow"></div>
+      <div class="avatar-wrap" id="avatar"></div>
+      <div class="stage-shadow"></div>
     </div>
-
-    <div class="char-name-badge" id="display-name">Steve</div>
-    <div class="char-trait-badge" id="display-trait">The Classic</div>
-
-    <!-- CONTROLS -->
+    <div class="char-name" id="disp-name">Steve</div>
+    <div class="char-trait" id="disp-trait">The Classic</div>
     <div class="controls">
-      <button class="ctrl-btn" id="btn-mouth" onclick="toggleMouth()">
-        🗣 Toggle Mouth <span class="kbd">M</span>
-      </button>
-      <button class="ctrl-btn" id="btn-immersive" onclick="toggleImmersive()">
-        🔲 Immersive <span class="kbd">I</span>
-      </button>
-      <button class="ctrl-btn" id="btn-wave" onclick="waveAvatar()">
-        👋 Wave
-      </button>
-      <button class="ctrl-btn" id="btn-spin" onclick="spinAvatar()">
-        🔄 Spin
-      </button>
+      <button class="btn" id="btn-mouth" onclick="toggleMouth()">🗣 Mouth <span class="kbd">M</span></button>
+      <button class="btn" id="btn-imm" onclick="toggleImmersive()">🔲 Immersive <span class="kbd">I</span></button>
+      <button class="btn" onclick="doWave()">👋 Wave</button>
+      <button class="btn" onclick="doSpin()">🔄 Spin</button>
     </div>
   </div>
 
-  <!-- CHARACTER PANEL -->
   <div class="char-panel">
     <div class="panel-title">Choose Your Puppet — 14 Characters</div>
-    <div class="char-grid" id="char-grid"></div>
-
-    <div class="info-panel" id="info-panel">
-      <h3 id="info-name">Steve</h3>
+    <div class="char-grid" id="grid"></div>
+    <div class="info-box">
+      <h3 id="info-name">Steve — The Classic</h3>
       <p id="info-desc">The original PrivacyPuppet. Cool, calm, and always protecting your data with a confident smile.</p>
     </div>
   </div>
-
 </div>
 
-<!-- FOOTER -->
 <footer>
   <span>© 2024 PrivacyPuppet. No cookies. No tracking. Ever.</span>
-  <div>
-    <a href="#">Blog</a>
-    <a href="#">Disclaimer</a>
-    <a href="#">Privacy Policy</a>
-  </div>
+  <div><a href="#">Blog</a><a href="#">Disclaimer</a><a href="#">Privacy Policy</a></div>
 </footer>
 
 <script>
+// ── COLOUR UTILS ────────────────────────────────────────────────
+function h2r(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]}
+function r2h(r,g,b){return'#'+[r,g,b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('')}
+function li(h,n){const[r,g,b]=h2r(h);return r2h(r+n,g+n,b+n)}
+function dk(h,n){const[r,g,b]=h2r(h);return r2h(r-n,g-n,b-n)}
+
 // ── CHARACTER DATA ──────────────────────────────────────────────
-const characters = [
-  {
-    id: 'steve',
-    name: 'Steve',
-    trait: 'The Classic',
-    desc: 'The original PrivacyPuppet. Cool, calm, and always protecting your data with a confident smile.',
-    skin: '#FDBCB4', hair: '#3D2B1F', shirt: '#4a90d9', eye: '#4a6fa5',
-    hairStyle: 'short', isNew: false
-  },
-  {
-    id: 'emma',
-    name: 'Emma',
-    trait: 'The Advocate',
-    desc: 'Passionate about digital rights and privacy law. Emma fights for your freedom online every day.',
-    skin: '#FFD5C2', hair: '#C4622D', shirt: '#e879a0', eye: '#7b4f3a',
-    hairStyle: 'long', isNew: false
-  },
-  {
-    id: 'marcus',
-    name: 'Marcus',
-    trait: 'The Hacker',
-    desc: 'Ex-security researcher turned privacy champion. Marcus knows every trick in the book.',
-    skin: '#8D5524', hair: '#1a1a1a', shirt: '#2d8a4e', eye: '#2d4a1e',
-    hairStyle: 'fro', isNew: false
-  },
-  {
-    id: 'kofi',
-    name: 'Kofi',
-    trait: 'The Educator',
-    desc: 'Explains complex privacy concepts in simple terms. Kofi believes knowledge is the best defense.',
-    skin: '#6B3A2A', hair: '#0d0d0d', shirt: '#d97706', eye: '#1a0a00',
-    hairStyle: 'short', isNew: false
-  },
-  {
-    id: 'yuki',
-    name: 'Yuki',
-    trait: 'The Engineer',
-    desc: 'Built privacy-first systems for Fortune 500 companies. Yuki codes the future of data security.',
-    skin: '#F5D5B8', hair: '#0d0d0d', shirt: '#7c3aed', eye: '#1a0a00',
-    hairStyle: 'straight', isNew: false
-  },
-  {
-    id: 'liam',
-    name: 'Liam',
-    trait: 'The Journalist',
-    desc: 'Award-winning investigative reporter who exposed three major data breaches. Liam speaks truth.',
-    skin: '#FDEBD0', hair: '#8B4513', shirt: '#1d6b8a', eye: '#5c4033',
-    hairStyle: 'wavy', isNew: false
-  },
-  {
-    id: 'sofia',
-    name: 'Sofia',
-    trait: 'The Diplomat',
-    desc: 'Negotiates privacy treaties between tech giants and governments. Sofia bridges the gap.',
-    skin: '#D4A574', hair: '#2C1810', shirt: '#c0392b', eye: '#1a0a00',
-    hairStyle: 'bun', isNew: true
-  },
-  {
-    id: 'amara',
-    name: 'Amara',
-    trait: 'The Activist',
-    desc: 'Grassroots organizer who built a 2-million-strong privacy movement from the ground up.',
-    skin: '#4A2511', hair: '#0a0a0a', shirt: '#16a085', eye: '#0d0500',
-    hairStyle: 'locs', isNew: true
-  },
-  {
-    id: 'chen',
-    name: 'Chen',
-    trait: 'The Analyst',
-    desc: 'Decodes privacy policies so you don\'t have to. Chen has read 10,000 terms of service.',
-    skin: '#E8C49A', hair: '#1a0a00', shirt: '#8e44ad', eye: '#0d0500',
-    hairStyle: 'short', isNew: true
-  },
-  {
-    id: 'diego',
-    name: 'Diego',
-    trait: 'The Designer',
-    desc: 'Pioneered privacy-by-design UX patterns used by millions of apps worldwide.',
-    skin: '#C68642', hair: '#1a0500', shirt: '#e67e22', eye: '#0d0200',
-    hairStyle: 'curly', isNew: true
-  },
-  {
-    id: 'priya',
-    name: 'Priya',
-    trait: 'The Scientist',
-    desc: 'AI safety researcher who develops privacy-preserving machine learning algorithms.',
-    skin: '#B5712B', hair: '#0a0a0a', shirt: '#27ae60', eye: '#060300',
-    hairStyle: 'long', isNew: true
-  },
-  {
-    id: 'zara',
-    name: 'Zara',
-    trait: 'The Strategist',
-    desc: 'Former Big Tech insider turned whistleblower. Zara knows where all the data bodies are buried.',
-    skin: '#7D4527', hair: '#1f0a00', shirt: '#d35400', eye: '#0d0200',
-    hairStyle: 'locs', isNew: true
-  },
-  {
-    id: 'jake',
-    name: 'Jake',
-    trait: 'The Developer',
-    desc: 'Open-source champion who built the most popular privacy browser extension with 5M users.',
-    skin: '#FDDBC2', hair: '#6B3A2A', shirt: '#2980b9', eye: '#3d2010',
-    hairStyle: 'short', isNew: true
-  },
-  {
-    id: 'nina',
-    name: 'Nina',
-    trait: 'The Lawyer',
-    desc: 'Landmark GDPR cases, class actions against data brokers — Nina makes privacy law history.',
-    skin: '#F0C8A0', hair: '#C4622D', shirt: '#8e44ad', eye: '#7b4f3a',
-    hairStyle: 'straight', isNew: true
-  },
+const CHARS=[
+  {id:'steve', name:'Steve',   trait:'The Classic',    desc:'The original PrivacyPuppet. Cool, calm, and always protecting your data with a confident smile.',                  skin:'#F4C5A8',hair:'#5C3317',eye:'#4a6fa5',shirt:'#2563eb',style:'sidepart', isNew:false},
+  {id:'emma',  name:'Emma',    trait:'The Advocate',   desc:'Passionate about digital rights and privacy law. Emma fights for your freedom online every single day.',           skin:'#FDDEC8',hair:'#B85C28',eye:'#8B5E3C',shirt:'#db2777',style:'long',     isNew:false},
+  {id:'marcus',name:'Marcus',  trait:'The Hacker',     desc:'Ex-security researcher turned privacy champion. Marcus knows every exploit, every vulnerability, every fix.',      skin:'#8B5E3C',hair:'#1a1010',eye:'#2d5a27',shirt:'#059669',style:'fro',      isNew:false},
+  {id:'kofi',  name:'Kofi',    trait:'The Educator',   desc:'Explains privacy in plain language. Kofi has taught 500,000 people why their data is worth protecting.',           skin:'#6B3A22',hair:'#100808',eye:'#3d1a08',shirt:'#d97706',style:'short',    isNew:false},
+  {id:'yuki',  name:'Yuki',    trait:'The Engineer',   desc:'Built privacy-first systems used by millions. Yuki codes the future of secure, zero-knowledge architecture.',     skin:'#F0C8A0',hair:'#0d0d0d',eye:'#1a1a2e',shirt:'#7c3aed',style:'straight', isNew:false},
+  {id:'liam',  name:'Liam',    trait:'The Journalist', desc:'Award-winning reporter who exposed three major data breaches. Liam speaks truth to surveillance power.',           skin:'#FBECD8',hair:'#7B3F00',eye:'#5c3317',shirt:'#0284c7',style:'wavy',     isNew:false},
+  {id:'sofia', name:'Sofia',   trait:'The Diplomat',   desc:'Negotiates privacy treaties between tech giants and governments. Sofia builds the bridges others burn.',           skin:'#C8895A',hair:'#2C1810',eye:'#1a0808',shirt:'#dc2626',style:'bun',      isNew:true},
+  {id:'amara', name:'Amara',   trait:'The Activist',   desc:'Built a 2-million-strong grassroots privacy movement from scratch. Amara organizes the resistance.',              skin:'#4A2511',hair:'#0a0505',eye:'#080200',shirt:'#0d9488',style:'locs',     isNew:true},
+  {id:'chen',  name:'Chen',    trait:'The Analyst',    desc:'Has personally read over 10,000 terms of service agreements so you never have to. Chen finds what hides in plain sight.',skin:'#E8C49A',hair:'#1a0a00',eye:'#0d0500',shirt:'#6d28d9',style:'sidepart',isNew:true},
+  {id:'diego', name:'Diego',   trait:'The Designer',   desc:'Pioneered privacy-by-design UX patterns now used by hundreds of apps. Diego makes privacy feel effortless.',      skin:'#C68642',hair:'#1a0500',eye:'#0d0200',shirt:'#ea580c',style:'curly',    isNew:true},
+  {id:'priya', name:'Priya',   trait:'The Scientist',  desc:'AI safety researcher developing privacy-preserving machine learning. Priya stops your data training their models.', skin:'#B5712B',hair:'#0a0505',eye:'#050200',shirt:'#16a34a',style:'long',     isNew:true},
+  {id:'zara',  name:'Zara',    trait:'The Strategist', desc:'Former Big Tech insider turned whistleblower. Zara knows exactly where the bodies — and the data — are buried.',   skin:'#7D4527',hair:'#1f0a00',eye:'#0d0200',shirt:'#c2410c',style:'locs',     isNew:true},
+  {id:'jake',  name:'Jake',    trait:'The Developer',  desc:'Built the most popular privacy browser extension with 5 million active users. Jake ships what others just talk about.',skin:'#F8DBC8',hair:'#6B3A2A',eye:'#3d2010',shirt:'#1d4ed8',style:'short',   isNew:true},
+  {id:'nina',  name:'Nina',    trait:'The Lawyer',     desc:'Landmark GDPR class actions, data broker takedowns, landmark rulings. Nina makes privacy law history in court.',  skin:'#F0C8A0',hair:'#B85C28',eye:'#5c3317',shirt:'#7e22ce',style:'straight', isNew:true},
 ];
 
-let selected = characters[0];
-let mouthOpen = false;
-let immersiveMode = false;
+let sel = CHARS[0];
+let mouthOn = false;
+let immOn = false;
+let talkTimer = null;
 
-// ── SVG AVATAR BUILDER ──────────────────────────────────────────
-function buildSVG(char, size = 200) {
-  const s = size / 200;
-  const { skin, hair, shirt, eye, hairStyle } = char;
+// ── HAIR BUILDERS ───────────────────────────────────────────────
+function backHair(c,hHL,hSH){
+  const h=c.hair;
+  switch(c.style){
+    case 'long':    return `<path d="M40 92 Q28 122 30 170 Q36 195 52 205 L58 197 Q44 172 46 128 Q42 103 40 92Z" fill="${hSH}"/>
+                            <path d="M160 92 Q172 122 170 170 Q164 195 148 205 L142 197 Q156 172 154 128 Q158 103 160 92Z" fill="${hSH}"/>`;
+    case 'straight':return `<path d="M40 92 Q34 118 36 158 Q40 178 50 186 L55 178 Q44 158 46 122 Q42 103 40 92Z" fill="${hSH}"/>
+                            <path d="M160 92 Q166 118 164 158 Q160 178 150 186 L145 178 Q156 158 154 122 Q158 103 160 92Z" fill="${hSH}"/>`;
+    case 'wavy':    return `<path d="M40 92 Q31 115 34 146 Q37 164 44 172 Q38 150 40 122 Q40 104 40 92Z" fill="${hSH}"/>
+                            <path d="M160 92 Q169 115 166 146 Q163 164 156 172 Q162 150 160 122 Q160 104 160 92Z" fill="${hSH}"/>`;
+    case 'locs':    return `<path d="M40 92 Q34 114 36 152 Q38 168 44 174 L50 167 Q44 142 46 116 Q42 100 40 92Z" fill="${h}"/>
+                            <path d="M160 92 Q166 114 164 152 Q162 168 156 174 L150 167 Q156 142 154 116 Q158 100 160 92Z" fill="${h}"/>
+                            <rect x="46" y="102" width="10" height="92" rx="5" fill="${h}"/>
+                            <rect x="60" y="104" width="9" height="88" rx="4.5" fill="${hHL}" opacity=".75"/>
+                            <rect x="132" y="104" width="9" height="88" rx="4.5" fill="${hHL}" opacity=".75"/>
+                            <rect x="145" y="102" width="10" height="92" rx="5" fill="${h}"/>`;
+    default: return '';
+  }
+}
 
-  const hairPaths = {
-    short: `<rect x="52" y="38" width="96" height="40" rx="20" fill="${hair}"/>
-            <rect x="52" y="48" width="10" height="30" rx="5" fill="${hair}"/>
-            <rect x="138" y="48" width="10" height="30" rx="5" fill="${hair}"/>`,
-    long:  `<rect x="52" y="38" width="96" height="40" rx="20" fill="${hair}"/>
-            <rect x="52" y="60" width="12" height="70" rx="6" fill="${hair}"/>
-            <rect x="136" y="60" width="12" height="70" rx="6" fill="${hair}"/>`,
-    straight: `<rect x="54" y="38" width="92" height="38" rx="18" fill="${hair}"/>
-               <rect x="54" y="60" width="10" height="55" rx="5" fill="${hair}"/>
-               <rect x="136" y="60" width="10" height="55" rx="5" fill="${hair}"/>`,
-    wavy:  `<path d="M52 58 Q60 40 100 40 Q140 40 148 58 Q140 42 130 48 Q120 54 110 48 Q100 42 90 48 Q80 54 70 48 Q60 42 52 58Z" fill="${hair}"/>`,
-    fro:   `<ellipse cx="100" cy="54" rx="58" ry="42" fill="${hair}"/>`,
-    curly: `<ellipse cx="100" cy="52" rx="55" ry="36" fill="${hair}"/>
-            <circle cx="62" cy="62" r="14" fill="${hair}"/>
-            <circle cx="138" cy="62" r="14" fill="${hair}"/>`,
-    bun:   `<rect x="56" y="45" width="88" height="32" rx="16" fill="${hair}"/>
-            <ellipse cx="100" cy="40" rx="22" ry="18" fill="${hair}"/>`,
-    locs:  `<rect x="54" y="38" width="92" height="36" rx="18" fill="${hair}"/>
-            <rect x="54" y="62" width="8" height="65" rx="4" fill="${hair}"/>
-            <rect x="68" y="65" width="8" height="62" rx="4" fill="${hair}"/>
-            <rect x="124" y="65" width="8" height="62" rx="4" fill="${hair}"/>
-            <rect x="138" y="62" width="8" height="65" rx="4" fill="${hair}"/>`,
+function frontHair(c,hHL,hSH){
+  const h=c.hair;
+  switch(c.style){
+    case 'sidepart':return `<path d="M40 92 Q40 26 100 24 Q160 26 160 92 Q152 58 100 55 Q48 58 40 92Z" fill="url(#hg)"/>
+                            <path d="M58 56 Q68 46 82 44" fill="none" stroke="${hHL}" stroke-width="2" opacity=".45"/>
+                            <path d="M40 92 Q38 102 38 114 Q40 120 44 122 Q42 112 42 102 Q40 96 40 92Z" fill="${h}"/>
+                            <path d="M160 92 Q162 102 162 114 Q160 120 156 122 Q158 112 158 102 Q160 96 160 92Z" fill="${h}"/>`;
+    case 'short':   return `<path d="M40 92 Q40 26 100 24 Q160 26 160 92 Q152 62 100 60 Q48 62 40 92Z" fill="url(#hg)"/>
+                            <path d="M40 92 Q38 98 38 106" stroke="${h}" stroke-width="7" fill="none" stroke-linecap="round"/>
+                            <path d="M160 92 Q162 98 162 106" stroke="${h}" stroke-width="7" fill="none" stroke-linecap="round"/>`;
+    case 'long':    return `<path d="M40 92 Q40 26 100 24 Q160 26 160 92 Q152 56 100 53 Q48 56 40 92Z" fill="url(#hg)"/>
+                            <path d="M100 24 L100 50" stroke="${hHL}" stroke-width="2.5" opacity=".4"/>`;
+    case 'straight':return `<path d="M40 92 Q40 26 100 24 Q160 26 160 92 Q152 57 100 54 Q48 57 40 92Z" fill="url(#hg)"/>
+                            <path d="M40 92 Q38 104 38 122 Q40 132 44 136" stroke="${hHL}" stroke-width="2.5" fill="none" opacity=".38"/>
+                            <path d="M160 92 Q162 104 162 122 Q160 132 156 136" stroke="${hHL}" stroke-width="2.5" fill="none" opacity=".38"/>`;
+    case 'wavy':    return `<path d="M40 92 Q40 26 100 24 Q160 26 160 92 Q152 57 100 54 Q48 57 40 92Z" fill="url(#hg)"/>
+                            <path d="M40 92 Q35 104 40 118 Q45 132 40 144" fill="none" stroke="${hHL}" stroke-width="3.5" opacity=".32"/>
+                            <path d="M160 92 Q165 104 160 118 Q155 132 160 144" fill="none" stroke="${hHL}" stroke-width="3.5" opacity=".32"/>`;
+    case 'fro':     return `<ellipse cx="100" cy="66" rx="74" ry="58" fill="${h}"/>
+                            <circle cx="34" cy="72" r="17" fill="${h}"/><circle cx="166" cy="72" r="17" fill="${h}"/>
+                            <circle cx="56" cy="24" r="19" fill="${h}"/><circle cx="144" cy="24" r="19" fill="${h}"/>
+                            <circle cx="100" cy="13" r="22" fill="${h}"/>
+                            <circle cx="78" cy="16" r="17" fill="${h}"/><circle cx="122" cy="16" r="17" fill="${h}"/>
+                            <ellipse cx="90" cy="44" rx="34" ry="21" fill="${hHL}" opacity=".2"/>
+                            <ellipse cx="82" cy="36" rx="18" ry="12" fill="white" opacity=".05"/>`;
+    case 'curly':   return `<path d="M42 92 Q42 27 100 24 Q158 27 158 92 Q150 60 100 57 Q50 60 42 92Z" fill="${h}"/>
+                            <circle cx="52" cy="66" r="20" fill="${h}"/><circle cx="74" cy="37" r="18" fill="${h}"/>
+                            <circle cx="100" cy="28" r="20" fill="${h}"/><circle cx="126" cy="37" r="18" fill="${h}"/>
+                            <circle cx="148" cy="66" r="20" fill="${h}"/>
+                            <circle cx="44" cy="88" r="16" fill="${h}"/><circle cx="156" cy="88" r="16" fill="${h}"/>
+                            <circle cx="52" cy="60" r="8" fill="${hHL}" opacity=".28"/>
+                            <circle cx="100" cy="24" r="9" fill="${hHL}" opacity=".28"/>
+                            <circle cx="148" cy="60" r="8" fill="${hHL}" opacity=".28"/>`;
+    case 'bun':     return `<path d="M40 92 Q40 30 100 28 Q160 30 160 92 Q152 66 100 63 Q48 66 40 92Z" fill="url(#hg)"/>
+                            <ellipse cx="100" cy="26" rx="27" ry="21" fill="${h}"/>
+                            <ellipse cx="100" cy="24" rx="22" ry="17" fill="${h}"/>
+                            <ellipse cx="96" cy="20" rx="13" ry="8" fill="${hHL}" opacity=".32"/>
+                            <ellipse cx="100" cy="28" rx="25" ry="19" fill="none" stroke="${hSH}" stroke-width="1.5" opacity=".5"/>`;
+    case 'locs':    return `<path d="M40 92 Q40 26 100 24 Q160 26 160 92 Q152 58 100 55 Q48 58 40 92Z" fill="url(#hg)"/>
+                            <rect x="40" y="90" width="10" height="82" rx="5" fill="${h}"/>
+                            <rect x="54" y="92" width="9" height="87" rx="4.5" fill="${hHL}" opacity=".72"/>
+                            <rect x="68" y="94" width="9" height="80" rx="4.5" fill="${h}"/>
+                            <rect x="123" y="94" width="9" height="80" rx="4.5" fill="${h}"/>
+                            <rect x="137" y="92" width="9" height="87" rx="4.5" fill="${hHL}" opacity=".72"/>
+                            <rect x="151" y="90" width="10" height="82" rx="5" fill="${h}"/>`;
+    default: return '';
+  }
+}
+
+// ── EYEBROWS ─────────────────────────────────────────────────────
+function eyebrows(c){
+  const h=c.hair, sH=dk(c.skin,25);
+  // different arch shapes by character give distinct looks
+  const arches={
+    sidepart:`<path d="M56 76 Q68 68 82 70 Q88 70 94 74" fill="none" stroke="${h}" stroke-width="3.8" stroke-linecap="round"/>
+              <path d="M106 74 Q112 70 124 68 Q138 68 144 76" fill="none" stroke="${h}" stroke-width="3.8" stroke-linecap="round"/>`,
+    short:   `<path d="M57 75 Q68 69 82 71 Q88 71 93 75" fill="none" stroke="${h}" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M107 75 Q112 71 126 69 Q140 69 143 75" fill="none" stroke="${h}" stroke-width="3.5" stroke-linecap="round"/>`,
+    long:    `<path d="M56 76 Q66 67 80 70 Q87 71 94 75" fill="none" stroke="${h}" stroke-width="3.2" stroke-linecap="round"/>
+              <path d="M106 75 Q113 71 128 67 Q140 67 144 76" fill="none" stroke="${h}" stroke-width="3.2" stroke-linecap="round"/>`,
+    straight:`<path d="M57 75 Q70 70 84 72 Q90 72 94 75" fill="none" stroke="${h}" stroke-width="3.4" stroke-linecap="round"/>
+              <path d="M106 75 Q110 72 124 70 Q138 70 143 75" fill="none" stroke="${h}" stroke-width="3.4" stroke-linecap="round"/>`,
+    wavy:    `<path d="M56 77 Q65 69 80 71 Q88 72 93 76" fill="none" stroke="${h}" stroke-width="3.3" stroke-linecap="round"/>
+              <path d="M107 76 Q112 72 128 69 Q140 69 144 77" fill="none" stroke="${h}" stroke-width="3.3" stroke-linecap="round"/>`,
+    fro:     `<path d="M57 76 Q66 70 80 72" fill="none" stroke="${h}" stroke-width="4" stroke-linecap="round"/>
+              <path d="M120 72 Q134 70 143 76" fill="none" stroke="${h}" stroke-width="4" stroke-linecap="round"/>`,
+    curly:   `<path d="M56 76 Q66 68 80 71 Q87 72 94 76" fill="none" stroke="${h}" stroke-width="3.8" stroke-linecap="round"/>
+              <path d="M106 76 Q113 72 128 68 Q140 68 144 76" fill="none" stroke="${h}" stroke-width="3.8" stroke-linecap="round"/>`,
+    bun:     `<path d="M56 75 Q66 68 80 70 Q88 71 94 75" fill="none" stroke="${h}" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M106 75 Q112 71 128 68 Q140 68 144 75" fill="none" stroke="${h}" stroke-width="3.5" stroke-linecap="round"/>`,
+    locs:    `<path d="M57 76 Q66 68 80 71" fill="none" stroke="${h}" stroke-width="4" stroke-linecap="round"/>
+              <path d="M120 71 Q134 68 143 76" fill="none" stroke="${h}" stroke-width="4" stroke-linecap="round"/>`,
   };
+  return arches[c.style]||arches.sidepart;
+}
 
-  const mouthPath = mouthOpen
-    ? `<ellipse cx="100" cy="118" rx="14" ry="10" fill="#1a0a00"/>
-       <path d="M86 118 Q100 126 114 118" stroke="#ffaaaa" stroke-width="2" fill="none"/>`
-    : `<path d="M88 116 Q100 124 112 116" stroke="#8B4513" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
-
+// ── MOUTH ────────────────────────────────────────────────────────
+function mouth(c,isOpen){
+  const lp=dk(c.skin,30), lpSH=dk(c.skin,48), lpHL=li(c.skin,8);
+  if(isOpen) return `
+    <path d="M82 129 Q100 124 118 129 Q116 145 100 149 Q84 145 82 129Z" fill="#1a0500"/>
+    <path d="M84 129 L116 129 L114 137 Q100 140 86 137Z" fill="#efebe3"/>
+    <line x1="100" y1="129" x2="100" y2="137" stroke="rgba(0,0,0,.22)" stroke-width=".8"/>
+    <line x1="92" y1="129" x2="92" y2="137" stroke="rgba(0,0,0,.18)" stroke-width=".7"/>
+    <line x1="108" y1="129" x2="108" y2="137" stroke="rgba(0,0,0,.18)" stroke-width=".7"/>
+    <ellipse cx="100" cy="143" rx="10" ry="5" fill="#c05050" opacity=".65"/>
+    <path d="M82 129 Q89 121 97 123 Q100 122 103 123 Q111 121 118 129" fill="${lp}" opacity=".88"/>
+    <path d="M82 129 Q100 138 118 129" fill="${lp}" opacity=".6"/>`;
   return `
-  <svg width="${size}" height="${size}" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-    <!-- Body / Shirt -->
-    <path d="M40 200 L40 148 Q40 130 60 125 L80 118 L100 128 L120 118 L140 125 Q160 130 160 148 L160 200Z" fill="${shirt}"/>
-    <!-- Neck -->
-    <rect x="88" y="122" width="24" height="20" rx="6" fill="${skin}"/>
-    <!-- Head -->
-    <ellipse cx="100" cy="88" rx="50" ry="54" fill="${skin}"/>
-    <!-- Hair -->
-    ${hairPaths[hairStyle] || hairPaths.short}
-    <!-- Eyes -->
-    <ellipse cx="82" cy="85" rx="10" ry="11" fill="white"/>
-    <ellipse cx="118" cy="85" rx="10" ry="11" fill="white"/>
-    <circle cx="84" cy="86" r="6" fill="${eye}"/>
-    <circle cx="120" cy="86" r="6" fill="${eye}"/>
-    <circle cx="85" cy="84" r="2" fill="white"/>
-    <circle cx="121" cy="84" r="2" fill="white"/>
-    <!-- Eyebrows -->
-    <path d="M73 74 Q82 70 91 74" stroke="${hair}" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <path d="M109 74 Q118 70 127 74" stroke="${hair}" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <!-- Nose -->
-    <ellipse cx="100" cy="100" rx="5" ry="7" fill="none" stroke="${skin === '#FDBCB4' ? '#e0998a' : '#7a4020'}" stroke-width="1.8"/>
-    <!-- Mouth -->
-    ${mouthPath}
-    <!-- Ear left -->
-    <ellipse cx="50" cy="90" rx="8" ry="12" fill="${skin}"/>
-    <!-- Ear right -->
-    <ellipse cx="150" cy="90" rx="8" ry="12" fill="${skin}"/>
-    <!-- Cheeks -->
-    <circle cx="72" cy="102" r="10" fill="rgba(255,120,120,0.18)"/>
-    <circle cx="128" cy="102" r="10" fill="rgba(255,120,120,0.18)"/>
-  </svg>`;
+    <path d="M96 120 Q100 118 104 120" fill="none" stroke="${dk(c.skin,22)}" stroke-width="1.2" opacity=".4"/>
+    <path d="M82 128 Q89 121 97 123 Q100 122 103 123 Q111 121 118 128" fill="${lp}" opacity=".82"/>
+    <path d="M82 128 Q89 121 97 123 Q100 122 103 123 Q111 121 118 128" fill="none" stroke="${lpSH}" stroke-width="1.3" opacity=".5"/>
+    <path d="M82 128 Q100 139 118 128 Q109 137 100 138 Q91 137 82 128Z" fill="${lp}" opacity=".72"/>
+    <path d="M91 134 Q100 138 109 134" fill="none" stroke="${lpHL}" stroke-width="2" opacity=".35"/>
+    <path d="M82 128 Q100 132 118 128" fill="none" stroke="${lpSH}" stroke-width=".9" opacity=".55"/>`;
 }
 
-function buildThumbSVG(char) {
-  return buildSVG(char, 52);
+// ── SHIRT ────────────────────────────────────────────────────────
+function shirt(c){
+  const sHL=li(c.shirt,22), sSH=dk(c.shirt,22);
+  return `<path d="M20 220 L20 178 Q20 160 44 154 L86 178 Q100 185 114 178 L156 154 Q180 160 180 178 L180 220Z" fill="${c.shirt}"/>
+          <path d="M86 178 Q100 188 114 178 L111 185 Q100 191 89 185Z" fill="${sSH}" opacity=".35"/>
+          <path d="M20 178 Q32 162 54 156 L50 168 Q30 170 22 184Z" fill="${sHL}" opacity=".18"/>
+          <path d="M86 178 Q100 172 114 178" fill="none" stroke="${sSH}" stroke-width="1.5" opacity=".6"/>`;
 }
 
-// ── RENDER GRID ──────────────────────────────────────────────────
-function renderGrid() {
-  const grid = document.getElementById('char-grid');
-  grid.innerHTML = characters.map(c => `
-    <div class="char-card ${c.id === selected.id ? 'selected' : ''}" onclick="selectChar('${c.id}')">
-      ${c.isNew ? '<span class="new-badge">NEW</span>' : ''}
-      <div class="thumb">${buildThumbSVG(c)}</div>
+// ── FULL STAGE SVG (high-quality, with gaze groups) ─────────────
+function stageSVG(c){
+  const s=c.skin, sHL=li(s,30), sSH=dk(s,24), sSH2=dk(s,42);
+  const h=c.hair, hHL=li(h,22), hSH=dk(h,22);
+  const e=c.eye,  eHL=li(e,40), eSH=dk(e,28);
+  return `<svg id="csVg" viewBox="0 0 200 220" width="290" height="319" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <radialGradient id="sg" cx="42%" cy="28%" r="70%">
+    <stop offset="0%" stop-color="${sHL}"/>
+    <stop offset="48%" stop-color="${s}"/>
+    <stop offset="100%" stop-color="${sSH}"/>
+  </radialGradient>
+  <radialGradient id="il" cx="34%" cy="28%" r="82%">
+    <stop offset="0%" stop-color="${eHL}"/>
+    <stop offset="52%" stop-color="${e}"/>
+    <stop offset="100%" stop-color="${eSH}"/>
+  </radialGradient>
+  <radialGradient id="ir" cx="34%" cy="28%" r="82%">
+    <stop offset="0%" stop-color="${eHL}"/>
+    <stop offset="52%" stop-color="${e}"/>
+    <stop offset="100%" stop-color="${eSH}"/>
+  </radialGradient>
+  <linearGradient id="hg" x1="28%" y1="0%" x2="72%" y2="100%">
+    <stop offset="0%" stop-color="${hHL}"/>
+    <stop offset="100%" stop-color="${hSH}"/>
+  </linearGradient>
+  <clipPath id="ecL"><ellipse cx="74" cy="85" rx="19" ry="13"/></clipPath>
+  <clipPath id="ecR"><ellipse cx="126" cy="85" rx="19" ry="13"/></clipPath>
+  <filter id="sf" x="-20%" y="-20%" width="140%" height="140%">
+    <feGaussianBlur stdDeviation="1.5"/>
+  </filter>
+</defs>
+
+${backHair(c,hHL,hSH)}
+
+<!-- Neck -->
+<path d="M88 153 Q100 160 112 153 L114 178 Q100 184 86 178Z" fill="url(#sg)"/>
+<path d="M88 153 Q100 163 112 153 L111 164 Q100 169 89 164Z" fill="${sSH}" opacity=".28"/>
+
+${shirt(c)}
+
+<!-- Head -->
+<ellipse cx="100" cy="97" rx="60" ry="72" fill="url(#sg)"/>
+
+<!-- Subsurface warmth on ears/nose -->
+<ellipse cx="100" cy="97" rx="60" ry="72" fill="none" stroke="${sSH2}" stroke-width="3" opacity=".12"/>
+
+<!-- Cheek blush -->
+<circle cx="65" cy="108" r="15" fill="rgba(255,110,90,.09)"/>
+<circle cx="135" cy="108" r="15" fill="rgba(255,110,90,.09)"/>
+
+<!-- Forehead highlight -->
+<ellipse cx="95" cy="62" rx="30" ry="17" fill="rgba(255,255,255,.07)"/>
+
+${frontHair(c,hHL,hSH)}
+
+<!-- Left ear -->
+<path d="M40 93 Q33 98 32 106 Q33 116 40 120 Q47 122 49 115 Q45 106 47 96Z" fill="url(#sg)"/>
+<path d="M41 96 Q36 102 36 108 Q37 113 40 116" fill="none" stroke="${sSH}" stroke-width="1.5" opacity=".5"/>
+<ellipse cx="38" cy="106" r="4" fill="${sSH}" opacity=".15"/>
+
+<!-- Right ear -->
+<path d="M160 93 Q167 98 168 106 Q167 116 160 120 Q153 122 151 115 Q155 106 153 96Z" fill="url(#sg)"/>
+<path d="M159 96 Q164 102 164 108 Q163 113 160 116" fill="none" stroke="${sSH}" stroke-width="1.5" opacity=".5"/>
+<ellipse cx="162" cy="106" r="4" fill="${sSH}" opacity=".15"/>
+
+<!-- Brow ridge ambient shadow -->
+<ellipse cx="74" cy="75" rx="22" ry="10" fill="${sSH}" opacity=".22"/>
+<ellipse cx="126" cy="75" rx="22" ry="10" fill="${sSH}" opacity=".22"/>
+
+<!-- ── LEFT EYE ── -->
+<ellipse cx="74" cy="85" rx="23" ry="16" fill="${sSH}" opacity=".26"/>
+<ellipse cx="74" cy="85" rx="19" ry="13" fill="#f5ede0"/>
+<g id="gaze-L" clip-path="url(#ecL)">
+  <circle cx="74" cy="85" r="9.5" fill="url(#il)"/>
+  <circle cx="74" cy="85" r="9.5" fill="none" stroke="${eSH}" stroke-width="1.8" opacity=".78"/>
+  <circle cx="74" cy="85" r="4.8" fill="#0e0e0e"/>
+  <circle cx="76.6" cy="82.2" r="2.5" fill="white" opacity=".92"/>
+  <circle cx="71.2" cy="87.5" r="1.2" fill="white" opacity=".38"/>
+</g>
+<path d="M55 85 Q74 73 93 85" fill="none" stroke="#1c0e06" stroke-width="2.8" stroke-linecap="round"/>
+<path d="M56 87 Q74 96 92 87" fill="none" stroke="${sSH}" stroke-width="1.2" opacity=".62"/>
+<ellipse cx="56" cy="85.5" rx="3.5" ry="2.2" fill="#d48080" opacity=".4"/>
+
+<!-- ── RIGHT EYE ── -->
+<ellipse cx="126" cy="85" rx="23" ry="16" fill="${sSH}" opacity=".26"/>
+<ellipse cx="126" cy="85" rx="19" ry="13" fill="#f5ede0"/>
+<g id="gaze-R" clip-path="url(#ecR)">
+  <circle cx="126" cy="85" r="9.5" fill="url(#ir)"/>
+  <circle cx="126" cy="85" r="9.5" fill="none" stroke="${eSH}" stroke-width="1.8" opacity=".78"/>
+  <circle cx="126" cy="85" r="4.8" fill="#0e0e0e"/>
+  <circle cx="128.6" cy="82.2" r="2.5" fill="white" opacity=".92"/>
+  <circle cx="123.2" cy="87.5" r="1.2" fill="white" opacity=".38"/>
+</g>
+<path d="M107 85 Q126 73 145 85" fill="none" stroke="#1c0e06" stroke-width="2.8" stroke-linecap="round"/>
+<path d="M108 87 Q126 96 144 87" fill="none" stroke="${sSH}" stroke-width="1.2" opacity=".62"/>
+<ellipse cx="144" cy="85.5" rx="3.5" ry="2.2" fill="#d48080" opacity=".4"/>
+
+${eyebrows(c)}
+
+<!-- Nose bridge shadow -->
+<path d="M98 78 Q96 86 94 92" fill="none" stroke="${sSH}" stroke-width="1.2" opacity=".22"/>
+
+<!-- Nose -->
+<path d="M97 98 Q93 112 91 119 Q96 124 100 123 Q104 124 109 119 Q107 112 103 98"
+      fill="none" stroke="${sSH2}" stroke-width="1.7" opacity=".48" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="92" cy="120" rx="5.5" ry="4" fill="${sSH}" opacity=".38"/>
+<ellipse cx="108" cy="120" rx="5.5" ry="4" fill="${sSH}" opacity=".38"/>
+<ellipse cx="100" cy="117" rx="3" ry="2.2" fill="${sHL}" opacity=".22"/>
+
+${mouth(c,mouthOn)}
+
+<!-- Under-chin shadow -->
+<ellipse cx="100" cy="168" rx="32" ry="10" filter="url(#sf)" fill="${sSH}" opacity=".35"/>
+</svg>`;
+}
+
+// ── THUMBNAIL SVG (simplified, no gaze IDs) ─────────────────────
+function thumbSVG(c){
+  const id=c.id;
+  const s=c.skin, sHL=li(s,28), sSH=dk(s,22);
+  const h=c.hair, hHL=li(h,20), hSH=dk(h,20);
+  const e=c.eye,  eHL=li(e,38), eSH=dk(e,26);
+  // Simplified version – no back hair, no mouth detail, no gaze IDs
+  const hairTop=`<path d="M32 74 Q32 22 80 20 Q128 22 128 74 Q122 48 80 46 Q38 48 32 74Z" fill="${h}"/>`;
+  const fro=`<ellipse cx="80" cy="54" rx="58" ry="44" fill="${h}"/>
+             <circle cx="28" cy="58" r="13" fill="${h}"/><circle cx="132" cy="58" r="13" fill="${h}"/>
+             <circle cx="46" cy="20" r="15" fill="${h}"/><circle cx="114" cy="20" r="15" fill="${h}"/>
+             <circle cx="80" cy="11" r="17" fill="${h}"/>
+             <ellipse cx="72" cy="36" rx="26" ry="16" fill="${hHL}" opacity=".2"/>`;
+  const curly=`${hairTop}<circle cx="42" cy="52" r="16" fill="${h}"/><circle cx="59" cy="29" r="14" fill="${h}"/>
+              <circle cx="80" cy="22" r="16" fill="${h}"/><circle cx="101" cy="29" r="14" fill="${h}"/>
+              <circle cx="118" cy="52" r="16" fill="${h}"/>`;
+  const bun=`<path d="M32 74 Q32 24 80 22 Q128 24 128 74 Q122 52 80 50 Q38 52 32 74Z" fill="${h}"/>
+             <ellipse cx="80" cy="21" rx="21" ry="16" fill="${h}"/>`;
+  const locs=`${hairTop}<rect x="32" y="72" width="8" height="64" rx="4" fill="${h}"/>
+              <rect x="44" y="74" width="7" height="68" rx="3.5" fill="${hHL}" opacity=".72"/>
+              <rect x="109" y="74" width="7" height="68" rx="3.5" fill="${hHL}" opacity=".72"/>
+              <rect x="120" y="72" width="8" height="64" rx="4" fill="${h}"/>`;
+  const longH=`${hairTop}<path d="M32 74 Q25 96 26 132 L32 128 Q36 100 34 78Z" fill="${hSH}"/>
+               <path d="M128 74 Q135 96 134 132 L128 128 Q124 100 126 78Z" fill="${hSH}"/>`;
+
+  const hairs={sidepart:hairTop,short:hairTop,long:longH,straight:longH,wavy:longH,fro,curly,bun,locs};
+  const hairSvg=hairs[c.style]||hairTop;
+
+  return `<svg viewBox="0 0 160 168" width="56" height="59" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <radialGradient id="ts${id}" cx="42%" cy="28%" r="70%">
+    <stop offset="0%" stop-color="${sHL}"/><stop offset="50%" stop-color="${s}"/><stop offset="100%" stop-color="${sSH}"/>
+  </radialGradient>
+  <radialGradient id="ti${id}" cx="34%" cy="28%" r="82%">
+    <stop offset="0%" stop-color="${eHL}"/><stop offset="55%" stop-color="${e}"/><stop offset="100%" stop-color="${eSH}"/>
+  </radialGradient>
+  <linearGradient id="th${id}" x1="30%" y1="0%" x2="70%" y2="100%">
+    <stop offset="0%" stop-color="${hHL}"/><stop offset="100%" stop-color="${hSH}"/>
+  </linearGradient>
+</defs>
+<path d="M16 168 L16 142 Q16 128 34 123 L62 142 Q80 148 98 142 L126 123 Q144 128 144 142 L144 168Z" fill="${c.shirt}"/>
+<path d="M68 142 Q80 148 92 142 L114 128 L106 138 Q80 150 54 138 L46 128Z" fill="rgba(0,0,0,.12)"/>
+<path d="M70 123 Q80 130 90 123 L92 138 Q80 143 68 138Z" fill="${s}"/>
+${hairSvg}
+<ellipse cx="80" cy="78" rx="48" ry="58" fill="url(#ts${id})"/>
+<ellipse cx="59" cy="68" rx="15" ry="10" fill="${sSH}" opacity=".22"/>
+<ellipse cx="101" cy="68" rx="15" ry="10" fill="${sSH}" opacity=".22"/>
+<ellipse cx="59" cy="68" rx="15" ry="10" fill="#f5ede0"/>
+<circle cx="59" cy="68" r="7.5" fill="url(#ti${id})"/>
+<circle cx="59" cy="68" r="7.5" fill="none" stroke="${eSH}" stroke-width="1.4" opacity=".7"/>
+<circle cx="59" cy="68" r="3.8" fill="#0e0e0e"/>
+<circle cx="61" cy="65.5" r="2" fill="white" opacity=".92"/>
+<ellipse cx="101" cy="68" rx="15" ry="10" fill="#f5ede0"/>
+<circle cx="101" cy="68" r="7.5" fill="url(#ti${id})"/>
+<circle cx="101" cy="68" r="7.5" fill="none" stroke="${eSH}" stroke-width="1.4" opacity=".7"/>
+<circle cx="101" cy="68" r="3.8" fill="#0e0e0e"/>
+<circle cx="103" cy="65.5" r="2" fill="white" opacity=".92"/>
+<path d="M44 68 Q59 57 74 68" fill="none" stroke="#1c0e06" stroke-width="2.2" stroke-linecap="round"/>
+<path d="M86 68 Q101 57 116 68" fill="none" stroke="#1c0e06" stroke-width="2.2" stroke-linecap="round"/>
+<ellipse cx="80" cy="50" rx="22" ry="12" fill="rgba(255,255,255,.07)"/>
+</svg>`;
+}
+
+// ── RENDER ───────────────────────────────────────────────────────
+function renderGrid(){
+  document.getElementById('grid').innerHTML=CHARS.map(c=>`
+    <div class="char-card${c.id===sel.id?' sel':''}" onclick="pick('${c.id}')">
+      ${c.isNew?'<span class="new-tag">NEW</span>':''}
+      ${thumbSVG(c)}
       <div class="cname">${c.name}</div>
       <div class="ctag">${c.trait}</div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
-// ── RENDER STAGE ────────────────────────────────────────────────
-function renderStage() {
-  document.getElementById('avatar-display').innerHTML = buildSVG(selected, 240);
-  document.getElementById('display-name').textContent = selected.name;
-  document.getElementById('display-trait').textContent = selected.trait;
-  document.getElementById('char-status').innerHTML =
-    `<span class="status-dot"></span>${selected.name} selected`;
-  document.getElementById('info-name').textContent = selected.name + ' — ' + selected.trait;
-  document.getElementById('info-desc').textContent = selected.desc;
+function renderStage(){
+  document.getElementById('avatar').innerHTML=stageSVG(sel);
+  document.getElementById('disp-name').textContent=sel.name;
+  document.getElementById('disp-trait').textContent=sel.trait;
+  document.getElementById('status-char').innerHTML=`<span class="dot"></span>${sel.name} selected`;
+  document.getElementById('info-name').textContent=`${sel.name} — ${sel.trait}`;
+  document.getElementById('info-desc').textContent=sel.desc;
 }
 
-function selectChar(id) {
-  selected = characters.find(c => c.id === id);
-  renderGrid();
-  renderStage();
+function pick(id){
+  sel=CHARS.find(c=>c.id===id);
+  renderGrid(); renderStage();
+  // reset gaze smoothing
+  gaze.lx=gaze.ly=gaze.rx=gaze.ry=0;
 }
 
-// ── CONTROLS ───────────────────────────────────────────────────
-function toggleMouth() {
-  mouthOpen = !mouthOpen;
-  const btn = document.getElementById('btn-mouth');
-  btn.classList.toggle('active', mouthOpen);
-  if (mouthOpen) {
-    window._talkInterval = setInterval(() => {
-      mouthOpen = !mouthOpen;
-      renderStage();
-    }, 180);
+// ── MOUSE EYE TRACKING ───────────────────────────────────────────
+let mx=innerWidth/2, my=innerHeight/2;
+const gaze={lx:0,ly:0,rx:0,ry:0};
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+
+function eyeOffset(exScreen,eyScreen,maxPx=4.5){
+  const dx=mx-exScreen,dy=my-eyScreen,d=Math.sqrt(dx*dx+dy*dy);
+  if(d<1)return{x:0,y:0};
+  const t=Math.min(d/350,1);
+  return{x:(dx/d)*maxPx*t, y:(dy/d)*maxPx*t};
+}
+
+function trackGaze(){
+  const stage=document.getElementById('stage');
+  if(stage){
+    const r=stage.getBoundingClientRect();
+    // Stage SVG: viewBox 200x220 rendered at 290x319
+    // Centred in the stage div
+    const svgW=290, svgH=319, vbW=200;
+    const sc=svgW/vbW;
+    const ox=r.left+(r.width-svgW)/2;
+    const oy=r.top+(r.height-svgH)/2;
+    // Eye positions in viewBox: L=(74,85), R=(126,85)
+    const lEX=ox+74*sc, lEY=oy+85*sc;
+    const rEX=ox+126*sc,rEY=oy+85*sc;
+    const tL=eyeOffset(lEX,lEY);
+    const tR=eyeOffset(rEX,rEY);
+    const k=0.1; // lerp smoothness
+    gaze.lx+=(tL.x-gaze.lx)*k; gaze.ly+=(tL.y-gaze.ly)*k;
+    gaze.rx+=(tR.x-gaze.rx)*k; gaze.ry+=(tR.y-gaze.ry)*k;
+    const gL=document.getElementById('gaze-L');
+    const gR=document.getElementById('gaze-R');
+    if(gL)gL.setAttribute('transform',`translate(${gaze.lx.toFixed(2)},${gaze.ly.toFixed(2)})`);
+    if(gR)gR.setAttribute('transform',`translate(${gaze.rx.toFixed(2)},${gaze.ry.toFixed(2)})`);
+  }
+  requestAnimationFrame(trackGaze);
+}
+
+// ── CONTROLS ────────────────────────────────────────────────────
+function toggleMouth(){
+  mouthOn=!mouthOn;
+  document.getElementById('btn-mouth').classList.toggle('on',mouthOn);
+  clearInterval(talkTimer);
+  if(mouthOn){
+    talkTimer=setInterval(()=>{mouthOn=!mouthOn;renderStage();},200);
   } else {
-    clearInterval(window._talkInterval);
-    mouthOpen = false;
-    renderStage();
+    mouthOn=false; renderStage();
   }
 }
 
-function toggleImmersive() {
-  immersiveMode = !immersiveMode;
-  document.body.classList.toggle('immersive', immersiveMode);
-  document.getElementById('btn-immersive').classList.toggle('active', immersiveMode);
+function toggleImmersive(){
+  immOn=!immOn;
+  document.body.classList.toggle('imm',immOn);
+  document.getElementById('btn-imm').classList.toggle('on',immOn);
 }
 
-function waveAvatar() {
-  const el = document.querySelector('.avatar-container');
-  el.style.animation = 'none';
-  el.style.transform = 'rotate(-15deg)';
-  let i = 0;
-  const t = setInterval(() => {
-    el.style.transform = i % 2 === 0 ? 'rotate(15deg)' : 'rotate(-15deg)';
-    i++;
-    if (i > 5) {
-      clearInterval(t);
-      el.style.transform = '';
-      el.style.animation = 'float 3s ease-in-out infinite';
-    }
-  }, 120);
+function doWave(){
+  const w=document.querySelector('.avatar-wrap');
+  if(!w)return;
+  w.style.animation='none';
+  let i=0;
+  const t=setInterval(()=>{
+    w.style.transform=i%2===0?'rotate(14deg)':'rotate(-14deg)';
+    if(++i>6){clearInterval(t);w.style.transform='';w.style.animation='float 3.2s ease-in-out infinite';}
+  },110);
 }
 
-function spinAvatar() {
-  const el = document.querySelector('.avatar-container');
-  el.style.animation = 'none';
-  el.style.transition = 'transform 0.6s ease';
-  el.style.transform = 'rotateY(360deg)';
-  setTimeout(() => {
-    el.style.transform = '';
-    el.style.transition = '';
-    el.style.animation = 'float 3s ease-in-out infinite';
-  }, 700);
+function doSpin(){
+  const w=document.querySelector('.avatar-wrap');
+  if(!w)return;
+  w.style.animation='none';
+  w.style.transition='transform .65s cubic-bezier(.4,0,.2,1)';
+  w.style.transform='rotateY(360deg)';
+  setTimeout(()=>{w.style.transform='';w.style.transition='';w.style.animation='float 3.2s ease-in-out infinite';},700);
 }
 
-// ── KEYBOARD SHORTCUTS ──────────────────────────────────────────
-document.addEventListener('keydown', e => {
-  if (e.key === 'm' || e.key === 'M') toggleMouth();
-  if (e.key === 'i' || e.key === 'I') toggleImmersive();
-  if (e.key === 'Escape' && immersiveMode) toggleImmersive();
-  if (e.key === 'ArrowRight') {
-    const idx = characters.findIndex(c => c.id === selected.id);
-    selectChar(characters[(idx + 1) % characters.length].id);
-  }
-  if (e.key === 'ArrowLeft') {
-    const idx = characters.findIndex(c => c.id === selected.id);
-    selectChar(characters[(idx - 1 + characters.length) % characters.length].id);
-  }
+// ── KEYBOARD ────────────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(e.key==='m'||e.key==='M')toggleMouth();
+  if(e.key==='i'||e.key==='I')toggleImmersive();
+  if(e.key==='Escape'&&immOn)toggleImmersive();
+  if(e.key==='ArrowRight'){const i=CHARS.findIndex(c=>c.id===sel.id);pick(CHARS[(i+1)%CHARS.length].id);}
+  if(e.key==='ArrowLeft'){const i=CHARS.findIndex(c=>c.id===sel.id);pick(CHARS[(i-1+CHARS.length)%CHARS.length].id);}
 });
 
-// ── INIT ───────────────────────────────────────────────────────
-renderGrid();
-renderStage();
+// ── INIT ────────────────────────────────────────────────────────
+renderGrid(); renderStage(); trackGaze();
 </script>
 </body>
 </html>
